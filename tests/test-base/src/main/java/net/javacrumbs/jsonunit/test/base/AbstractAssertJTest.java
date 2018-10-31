@@ -15,8 +15,12 @@
  */
 package net.javacrumbs.jsonunit.test.base;
 
+import net.javacrumbs.jsonunit.assertj.JsonSoftAssertions;
 import net.javacrumbs.jsonunit.core.Option;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
+
+import java.util.Comparator;
 
 import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.singletonList;
@@ -39,6 +43,7 @@ public abstract class AbstractAssertJTest {
     public void shouldAssertSimple() {
         assertThatJson("{\"a\":1, \"b\":2}").isEqualTo("{\"b\":2, \"a\":1}");
     }
+
 
     @Test
     public void shouldAssertLenient() {
@@ -76,6 +81,33 @@ public abstract class AbstractAssertJTest {
                 "  <{\"a\":1, \"b\":{\"c\":3}}>\n" +
                 "to contain value:\n" +
                 "  <{\"c\":5}>");
+    }
+
+
+    @Test
+    public void objectShouldContainComplexValueErrorSoftly() {
+        JsonSoftAssertions soft = new JsonSoftAssertions();
+
+        soft.assertThatJson("{\"root\":{\"a\":1, \"b\": {\"c\" :3}}}")
+                    .node("root")
+                    .isObject()
+                    .containsValue(json("{\"c\" :5}"));
+
+        assertThatThrownBy(soft::assertAll)
+            .hasMessage("[Different value found in node \"root\"] \n" +
+                "Expecting:\n" +
+                "  <{\"a\":1, \"b\":{\"c\":3}}>\n" +
+                "to contain value:\n" +
+                "  <{\"c\":5}>");
+    }
+
+    @Test
+    public void testSofAssert() {
+        SoftAssertions soft = new SoftAssertions();
+
+        soft.assertThat("string").usingComparator(Comparator.naturalOrder()).isEqualTo("string2");
+
+        soft.assertAll();
     }
 
     @Test
